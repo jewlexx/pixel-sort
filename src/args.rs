@@ -16,9 +16,9 @@ pub enum Mode {
 #[derive(Debug, Display, Default, Copy, Clone, ValueEnum)]
 #[strum(serialize_all = "kebab_case")]
 pub enum Method {
-    #[default]
     Luminance,
     Absolute,
+    #[default]
     Hue,
 }
 
