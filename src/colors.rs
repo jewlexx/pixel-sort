@@ -71,6 +71,15 @@ pub trait SingleColor {
     fn get_saturation(&self) -> f32 {
         self.get_hsla().1
     }
+
+    fn get_hsl_single(&self) -> u32 {
+        let hsla = self.get_hsla();
+
+        let hue = hsla.0 as f32;
+        let applied = ((hue * hsla.1 + 0.5) * hsla.2) + 0.5;
+
+        applied as u32
+    }
 }
 
 impl SingleColor for (u32, u32, Rgba<u8>) {

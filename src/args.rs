@@ -20,6 +20,7 @@ pub enum Method {
     Absolute,
     #[default]
     Hue,
+    Hsl,
 }
 
 #[derive(Debug, Clone, Parser)]

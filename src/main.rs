@@ -36,10 +36,11 @@ fn main() {
         let spin = indicatif::ProgressBar::new_spinner();
         spin.enable_steady_tick(std::time::Duration::from_millis(100));
 
-        pec.par_sort_unstable_by(|pixel, last| match args.method {
+        pec.sort_unstable_by(|pixel, last| match args.method {
             args::Method::Luminance => pixel.get_luminance().cmp(&last.get_luminance()),
             args::Method::Absolute => pixel.get_absolute().cmp(&last.get_absolute()),
             args::Method::Hue => pixel.get_hue().partial_cmp(&last.get_hue()).unwrap(),
+            args::Method::Hsl => pixel.get_hsl_single().cmp(&last.get_hsl_single()),
         });
 
         spin.finish_with_message("Finished sorting image");
@@ -50,17 +51,14 @@ fn main() {
 
         let mut sorted_img: RgbaImage = RgbaImage::new(img.width(), img.height());
 
-        for mut p in sorted_img.pixels_mut() {
+        for mut p in sorted_img.pixels_mut().rev() {
             let pixel = pec.pop().unwrap();
             p.0 = pixel.2 .0;
         }
 
-        if let Some(out_path) = args.out {
-            sorted_img.save(out_path).unwrap();
-        } else {
-            let format = image::guess_format(img.as_bytes()).unwrap_or(ImageFormat::Png);
-            sorted_img.save_with_format("output", format).unwrap();
-        }
+        let out_path = args.out.unwrap_or("out.png".into());
+
+        sorted_img.save(out_path).unwrap();
 
         spin.finish();
     }
