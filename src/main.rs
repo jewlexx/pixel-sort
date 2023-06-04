@@ -1,5 +1,6 @@
 use clap::Parser;
 use image::{GenericImageView, ImageFormat, RgbaImage};
+use rayon::prelude::*;
 
 use crate::colors::SingleColor;
 
@@ -30,11 +31,22 @@ fn main() {
         let pixels = img.pixels();
 
         let mut pec = pixels.collect::<Vec<_>>();
-        pec.sort_by(|pixel, last| match args.method {
+
+        println!("Sorting");
+        let spin = indicatif::ProgressBar::new_spinner();
+        spin.enable_steady_tick(std::time::Duration::from_millis(100));
+
+        pec.par_sort_unstable_by(|pixel, last| match args.method {
             args::Method::Luminance => pixel.get_luminance().cmp(&last.get_luminance()),
             args::Method::Absolute => pixel.get_absolute().cmp(&last.get_absolute()),
             args::Method::Hue => pixel.get_hue().partial_cmp(&last.get_hue()).unwrap(),
         });
+
+        spin.finish_with_message("Finished sorting image");
+
+        let spin = indicatif::ProgressBar::new_spinner();
+        spin.set_message("Cleaning up and saving image");
+        spin.enable_steady_tick(std::time::Duration::from_millis(100));
 
         let mut sorted_img: RgbaImage = RgbaImage::new(img.width(), img.height());
 
@@ -49,7 +61,7 @@ fn main() {
             let format = image::guess_format(img.as_bytes()).unwrap_or(ImageFormat::Png);
             sorted_img.save_with_format("output", format).unwrap();
         }
-    }
 
-    println!("Hello, world!");
+        spin.finish();
+    }
 }
